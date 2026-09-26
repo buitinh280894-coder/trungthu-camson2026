@@ -56,16 +56,22 @@ h1 em{display:block;font-style:normal;font-size:.6em;letter-spacing:.14em;margin
   background:linear-gradient(90deg,#FF8A4C,#FFB35A);-webkit-background-clip:text;background-clip:text;color:transparent}
 .lead{color:var(--muted);font-size:15.5px;line-height:1.6;margin:18px 0}
 
-.total{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:14px 16px;border-radius:18px;
+.total{display:block;padding:14px 16px;border-radius:18px;
   background:linear-gradient(135deg,rgba(255,200,90,.16),rgba(255,106,61,.1));border:1px solid rgba(255,210,120,.28);margin-bottom:12px}
-.total span{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
-.total b{font-size:22px;font-weight:900;color:var(--moon)}
+.total span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;white-space:nowrap}
+.total b{font-size:24px;font-weight:900;color:var(--moon);font-variant-numeric:tabular-nums;display:inline-block}
+.trow{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.tbar{height:8px;border-radius:8px;background:rgba(255,255,255,.1);margin:10px 0 7px;overflow:hidden}
+.tbar i{display:block;height:100%;width:100%;border-radius:8px;background:linear-gradient(90deg,#FF6A3D,#FFD878);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.total small{font-size:12.5px;color:var(--muted)}
+.total b.drop{animation:tick .6s ease}
+@keyframes tick{30%{transform:scale(1.12);color:#FF8A4C}}
 
-.pool{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
-.tier{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:12px 8px;text-align:center;
+.pool{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.tier{background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:12px 6px;text-align:center;
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.tier b{display:block;font-size:19px;font-weight:900}
-.bar-p{height:6px;border-radius:6px;background:rgba(255,255,255,.1);margin:9px 6px 7px;overflow:hidden}
+.tier b{display:block;font-size:clamp(16px,4.4vw,19px);font-weight:900}
+.bar-p{height:6px;border-radius:6px;background:rgba(255,255,255,.1);margin:9px 4px 7px;overflow:hidden}
 .bar-p i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--lan),var(--moon));transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .tier small{color:var(--muted);font-size:12.5px}
 
@@ -213,7 +219,7 @@ main{margin-top:22px}
       <h1>VUI TẾT<br>TRUNG THU<em>CỤM CẨM SƠN</em></h1>
     </header>
     <p class="lead">Mỗi người được chọn một chiếc đèn lồng. Chạm vào đèn để thắp sáng và nhận phần thưởng bên trong.</p>
-    <div class="total"><span>Tổng giải thưởng</span><b id="totalAmt"></b></div>
+    <div class="total"><div class="trow"><span>Giải thưởng còn lại</span><b id="totalAmt"></b></div><div class="tbar"><i id="totalBar"></i></div><small id="totalSub"></small></div>
     <div class="pool" id="pool"></div>
     <div class="status" id="status">Đang kết nối…</div>
     <section class="winners" aria-live="polite">
@@ -241,7 +247,7 @@ const firebaseConfig = {
 };
 /* ==================================================== */
 
-const PRIZES=[{v:200000,n:5},{v:100000,n:4},{v:50000,n:2}];
+const PRIZES=[{v:250000,n:2},{v:200000,n:5},{v:100000,n:4},{v:50000,n:2}];
 const TOTAL=PRIZES.reduce((s,p)=>s+p.n,0);
 const POOL_SUM=PRIZES.reduce((s,p)=>s+p.v*p.n,0);
 const $=id=>document.getElementById(id);
@@ -255,9 +261,21 @@ let fs=null,round=null,envs={},ready=false,failed="",busy=false,unsubEnvs=null,l
 const LS="trungthu_camson_";
 function mine(){try{return JSON.parse(localStorage.getItem(LS+round)||"null")}catch(e){return null}}
 function setMine(v){try{localStorage.setItem(LS+round,JSON.stringify(v))}catch(e){}}
-$("totalAmt").textContent=fmt(POOL_SUM);
+let shownLeft=null,tweenId=0;$("totalAmt").textContent=fmt(POOL_SUM);
 
+function showTotal(){
+  const given=Object.values(envs).reduce((s,e)=>s+(e.v||0),0),left=POOL_SUM-given;
+  $("totalBar").style.width=(left/POOL_SUM*100)+"%";
+  $("totalSub").textContent=`Đã trao ${fmt(given)} / tổng ${fmt(POOL_SUM)}`;
+  const elA=$("totalAmt");
+  if(shownLeft===null||reduce||shownLeft===left){shownLeft=left;elA.textContent=fmt(left);return}
+  const from=shownLeft,to=left,t0=performance.now(),id=++tweenId;shownLeft=left;
+  elA.classList.remove("drop");void elA.offsetWidth;elA.classList.add("drop");
+  (function step(t){if(id!==tweenId)return;const k=Math.min(1,(t-t0)/900),e=1-Math.pow(1-k,3);
+    elA.textContent=fmt(Math.round((from+(to-from)*e)/1000)*1000);if(k<1)requestAnimationFrame(step)})(t0);
+}
 function render(){
+  showTotal();
   // pool
   $("pool").innerHTML="";
   PRIZES.forEach(p=>{
