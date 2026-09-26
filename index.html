@@ -211,9 +211,9 @@ $("scrim").addEventListener("click",e=>{if(e.target.id==="scrim"&&!$("sheet").da
 
 function confirmTurn(i){
   openSheet(`<h2>Đèn số ${i+1}</h2>
-   <p class="sub">Mỗi người chỉ được chọn <b>một chiếc đèn</b>. Nhập họ tên để ghi nhận khi trúng thưởng.</p>
+   <p class="sub">Mỗi người chỉ được chọn <b>một chiếc đèn</b>. Nhập tên để ghi nhận khi trúng thưởng.</p>
    <label class="lb" for="nm">Họ và tên</label>
-   <input class="field" id="nm" maxlength="40" autocomplete="name" placeholder="Ví dụ: Bùi Văn Tình">
+   <input class="field" id="nm" maxlength="40" autocomplete="name" placeholder="Ví dụ: Tình">
    <p class="err" id="err"></p>
    <div class="actions"><button class="btn" id="cx">Chọn đèn khác</button><button class="btn primary" id="go">Thắp đèn</button></div>`);
   if(lastName)$("nm").value=lastName;
