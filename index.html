@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vui Tết Trung thu Cụm Cẩm Sơn</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800;900&family=Lora:ital,wght@1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#FFF4DC; --sky2:#FBE6BC; --ink:#1E1B4B; --muted:#6B5E7A;
+  --moon:#F4C95D; --moon-glow:rgba(244,201,93,.45);
+  --lantern:#E4572E; --lantern-deep:#A63A1E; --cap:#5B2A86;
+  --card:#FFFFFF; --line:#E9D6AE; --ok:#1F7A4D; --bad:#B3261E;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --sky:#14123A; --sky2:#221E5C; --ink:#FFF1D6; --muted:#B9ADD6;
+    --card:#241F58; --line:#3A3478; --cap:#F4C95D;
+  }
+}
+:root[data-theme="dark"]{
+  --sky:#14123A; --sky2:#221E5C; --ink:#FFF1D6; --muted:#B9ADD6;
+  --card:#241F58; --line:#3A3478; --cap:#F4C95D;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;color:var(--ink);background:var(--sky);
+  background-image:radial-gradient(120% 60% at 50% 0%,var(--sky2) 0%,var(--sky) 70%);
+  font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--moon);outline-offset:2px}
+
+.app{max-width:520px;margin:0 auto;padding:20px 16px 176px}
+
+header{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.moon{flex:none;width:74px;height:74px;border-radius:50%;
+  background:radial-gradient(circle at 38% 36%,#FFE9A8 0%,var(--moon) 55%,#D9A93A 100%);
+  box-shadow:0 0 0 8px var(--moon-glow),0 0 40px 10px var(--moon-glow);position:relative}
+.moon::after{content:"";position:absolute;width:14px;height:10px;border-radius:50%;background:rgba(180,130,30,.25);left:44px;top:40px;box-shadow:-20px -14px 0 -2px rgba(180,130,30,.2)}
+header h1{margin:0;font-size:30px;line-height:1.05;font-weight:900;letter-spacing:-.02em}
+header h1 em{display:block;font-style:normal;font-weight:900;font-size:22px;color:var(--lantern);letter-spacing:.01em;margin-top:4px}
+.lead{color:var(--muted);font-size:15px;margin:14px 0 16px;line-height:1.5}
+
+.pool{display:flex;gap:8px;margin-bottom:14px}
+.tier{flex:1;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 6px 9px;text-align:center}
+.tier b{display:block;font-size:17px;font-weight:800}
+.dots{display:flex;justify-content:center;gap:4px;margin-top:6px;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--lantern)}
+.dot.used{background:transparent;border:1.5px solid var(--line)}
+.tier small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+
+.status{border-radius:14px;padding:12px 14px;margin-bottom:16px;font-size:15px;line-height:1.45;background:var(--card);border:1.5px solid var(--line)}
+.status.win{border-color:var(--moon);background:color-mix(in srgb,var(--moon) 22%,var(--card))}
+.status:empty{display:none}
+
+/* lanterns */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 10px}
+.slot{display:flex;flex-direction:column;align-items:center;padding-bottom:6px}
+.slot:nth-child(3n+2){margin-top:22px}
+.lan{position:relative;border:0;background:none;padding:0;width:100%;max-width:120px;display:flex;flex-direction:column;align-items:center}
+.lan .str{width:2px;height:22px;background:var(--muted);opacity:.5}
+.lan .cap{width:44%;height:9px;border-radius:4px 4px 2px 2px;background:var(--cap)}
+.lan .body{width:92%;aspect-ratio:1/0.92;border-radius:50%/46%;position:relative;overflow:hidden;
+  background:radial-gradient(circle at 50% 40%,#FF9A5A 0%,var(--lantern) 48%,var(--lantern-deep) 100%);
+  display:grid;place-items:center;transition:transform .2s}
+.lan .body::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 17%,rgba(0,0,0,.14) 17% 19%);border-radius:inherit}
+.lan .num{position:relative;font-weight:900;font-size:22px;color:#FFF3D0;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.lan .bot{width:36%;height:7px;border-radius:0 0 4px 4px;background:var(--cap)}
+.lan .tas{width:3px;height:18px;background:var(--moon);border-radius:0 0 3px 3px}
+.lan:not(:disabled):active .body{transform:scale(.95) rotate(-3deg)}
+.lan:disabled .body{filter:saturate(.55)}
+.lan.open .body{background:radial-gradient(circle at 50% 45%,#FFF6CF 0%,var(--moon) 60%,#E0A838 100%);
+  box-shadow:0 0 26px 6px var(--moon-glow)}
+.lan.open .body::before{background:repeating-linear-gradient(90deg,transparent 0 17%,rgba(120,70,0,.12) 17% 19%)}
+.lan.open .num{color:#6A3A00;text-shadow:none;font-size:15px;text-align:center;line-height:1.1}
+.lan.mine .body{outline:3px solid var(--ok);outline-offset:3px}
+.who{font-size:12px;color:var(--muted);margin-top:6px;text-align:center;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--sky);border-top:1.5px solid var(--line);
+  padding:10px 16px calc(72px + env(safe-area-inset-bottom,0px))}
+.bar .row{max-width:520px;margin:0 auto;display:flex;gap:8px}
+.btn{flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px 8px;font-weight:600;font-size:14px}
+.btn.primary{background:var(--lantern);border-color:var(--lantern);color:#fff}
+.btn.moon{background:var(--moon);border-color:var(--moon);color:#3B2600}
+.btn[hidden]{display:none}
+
+.scrim{position:fixed;inset:0;background:rgba(10,8,40,.6);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.scrim.show{display:flex}
+.sheet{background:var(--sky);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 6px;font-size:22px;font-weight:800}
+.sub{color:var(--muted);margin:0 0 16px;font-size:14px;line-height:1.5}
+.field{width:100%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:12px;font:inherit;font-size:16px}
+.lb{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+.q{font-size:20px;font-weight:800;line-height:1.35;margin:4px 0 16px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:14px;font-size:16px;display:flex;gap:10px;align-items:center}
+.opt .k{flex:none;width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--moon) 40%,var(--card));display:grid;place-items:center;font-weight:800;font-size:13px}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--card))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,var(--card))}
+.timer{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
+.timer i{display:block;height:100%;background:var(--lantern);width:100%}
+.actions{display:flex;gap:8px;margin-top:18px}
+.reveal{text-align:center;padding:10px 0 4px}
+.reveal .big{font-size:50px;font-weight:900;color:var(--lantern);line-height:1;margin:14px 0 8px;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+.reveal .msg{font-family:"Lora",Georgia,serif;font-style:italic;font-size:18px}
+.qitem{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;gap:10px}
+.qitem div{flex:1;font-size:14px}
+.qitem small{display:block;color:var(--ok);margin-top:4px;font-weight:600}
+.qitem button{border:0;background:none;color:var(--bad);font-weight:600;font-size:13px;align-self:flex-start;padding:4px}
+.ans{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.ans input[type=radio]{width:22px;height:22px;accent-color:var(--ok);flex:none}
+.hist{list-style:none;padding:0;margin:0}
+.hist li{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.hist li b{color:var(--lantern);flex:none}
+.empty{color:var(--muted);text-align:center;padding:20px 0}
+.err{color:var(--bad);font-size:14px;min-height:1em;margin:8px 0 0}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:20}
+@media (prefers-reduced-motion:reduce){.sheet,.reveal .big{animation:none}.lan .body{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="moon" aria-hidden="true"></div>
+    <h1>VUI TẾT TRUNG THU<em>CỤM CẨM SƠN</em></h1>
+  </header>
+  <p class="lead">Mỗi người được chọn một chiếc đèn lồng. Chạm vào đèn để thắp sáng và nhận phần thưởng bên trong.</p>
+  <div class="pool" id="pool"></div>
+  <div class="status" id="status">Đang kết nối…</div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="bar"><div class="row">
+  <button class="btn" id="bHist">Người trúng</button>
+</div></div>
+
+<div class="scrim" id="scrim"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<canvas id="confetti"></canvas>
+
+<script>
+/* ====== Cấu hình Firebase: trungthu-camson-1dda5 ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAoUVKf_FqCXYZjr1hPrEtaV5X9AYlXzO0",
+  authDomain: "trungthu-camson-1dda5.firebaseapp.com",
+  projectId: "trungthu-camson-1dda5",
+  storageBucket: "trungthu-camson-1dda5.firebasestorage.app",
+  messagingSenderId: "176638259428",
+  appId: "1:176638259428:web:1eed60dccdc3c965287cf1",
+  measurementId: "G-RZQF3VJKW2"
+};
+/* ==================================================== */
+
+const PRIZES=[{v:200000,n:5},{v:100000,n:4},{v:50000,n:2}];
+const TOTAL=PRIZES.reduce((s,p)=>s+p.n,0);
+const $=id=>document.getElementById(id);
+const fmt=v=>v.toLocaleString("vi-VN")+"đ";
+const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const keyOf=n=>n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[đĐ]/g,"d").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+
+let fs=null,round=null,envs={},ready=false,failed="",busy=false,unsubEnvs=null,lastName="";
+const LS="trungthu_camson_";
+function mine(){try{return JSON.parse(localStorage.getItem(LS+round)||"null")}catch(e){return null}}
+function setMine(v){try{localStorage.setItem(LS+round,JSON.stringify(v))}catch(e){}}
+
+function render(){
+  $("pool").innerHTML="";
+  PRIZES.forEach(p=>{
+    const used=Object.values(envs).filter(e=>e.v===p.v).length;
+    const t=el("div","tier");t.appendChild(el("b",null,(p.v/1000)+"K"));
+    const d=el("div","dots");for(let i=0;i<p.n;i++)d.appendChild(el("span","dot"+(i<used?" used":"")));
+    t.appendChild(d);t.appendChild(el("small",null,`còn ${p.n-used}/${p.n}`));$("pool").appendChild(t);
+  });
+  const left=TOTAL-Object.keys(envs).length,m=ready&&round?mine():null,st=$("status");
+  st.className="status";
+  if(failed)st.textContent=failed;
+  else if(!ready)st.textContent="Đang kết nối…";
+  else if(m){st.className="status win";st.textContent=`${m.name}, bạn đã trúng ${fmt(m.v)} ở đèn số ${m.idx+1}. Chúc Trung thu vui vẻ!`}
+  else if(left<=0)st.textContent="Đèn đã sáng hết, tất cả phần thưởng đã có chủ.";
+  else st.textContent=`Còn ${left} phần thưởng. Mỗi người chọn 1 chiếc đèn.`;
+  const canPlay=ready&&!failed&&!m&&left>0&&!busy;
+  const g=$("grid");g.innerHTML="";
+  for(let i=0;i<TOTAL;i++){
+    const e=envs[i],slot=el("div","slot"),b=el("button","lan");
+    b.innerHTML='<span class="str"></span><span class="cap"></span><span class="body"><span class="num"></span></span><span class="bot"></span><span class="tas"></span>';
+    if(e){b.classList.add("open");if(m&&m.idx===i)b.classList.add("mine");b.disabled=true;
+      b.querySelector(".num").textContent=(e.v/1000)+"K";b.setAttribute("aria-label",`Đèn số ${i+1}: ${fmt(e.v)}`);
+      slot.appendChild(b);slot.appendChild(el("div","who",e.name||"Một người chơi"));
+    }else{b.querySelector(".num").textContent=i+1;b.disabled=!canPlay;b.setAttribute("aria-label",`Đèn số ${i+1}`);
+      b.onclick=()=>confirmTurn(i);slot.appendChild(b);slot.appendChild(el("div","who"," "));}
+    g.appendChild(slot);
+  }
+}
+
+function openSheet(html,lock){$("sheet").innerHTML=html;$("sheet").dataset.lock=lock?"1":"";$("scrim").classList.add("show")}
+function closeSheet(){$("scrim").classList.remove("show");render()}
+$("scrim").addEventListener("click",e=>{if(e.target.id==="scrim"&&!$("sheet").dataset.lock)closeSheet()});
+
+function confirmTurn(i){
+  openSheet(`<h2>Đèn số ${i+1}</h2>
+   <p class="sub">Mỗi người chỉ được chọn <b>một chiếc đèn</b>. Nhập họ tên để ghi nhận khi trúng thưởng.</p>
+   <label class="lb" for="nm">Họ và tên</label>
+   <input class="field" id="nm" maxlength="40" autocomplete="name" placeholder="Ví dụ: Nguyễn Văn An">
+   <p class="err" id="err"></p>
+   <div class="actions"><button class="btn" id="cx">Chọn đèn khác</button><button class="btn primary" id="go">Thắp đèn</button></div>`);
+  if(lastName)$("nm").value=lastName;
+  setTimeout(()=>$("nm")&&$("nm").focus(),250);
+  $("cx").onclick=closeSheet;
+  $("nm").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
+  $("go").onclick=async()=>{
+    const name=$("nm").value.trim().replace(/\s+/g," "),key=keyOf(name);
+    if(name.length<2||!key){$("err").textContent="Vui lòng nhập họ tên trước khi thắp đèn.";$("nm").focus();return}
+    lastName=name;busy=true;
+    openSheet(`<div class="reveal"><h2>Đèn số ${i+1}</h2><p class="sub">Đang thắp đèn…</p></div>`,true);
+    let res;
+    try{res=await claim(i,name,key)}
+    catch(e){busy=false;console.error(e);
+      openSheet(`<div class="reveal"><h2>Chưa thắp được đèn</h2><p class="sub">Kết nối bị gián đoạn. Kiểm tra mạng rồi thử lại.</p></div>
+       <div class="actions"><button class="btn primary" id="ok">Đóng</button></div>`);$("ok").onclick=closeSheet;return}
+    busy=false;
+    if(res.dup){
+      openSheet(`<div class="reveal"><h2>Tên này đã chơi rồi</h2><p class="sub">${esc(res.name)} đã nhận ${fmt(res.v)} ở đèn số ${res.idx+1}. Mỗi người chỉ được chơi một lần.</p></div>
+       <div class="actions"><button class="btn primary" id="ok">Đóng</button></div>`);$("ok").onclick=closeSheet;return}
+    if(res.soldOut){
+      openSheet(`<div class="reveal"><h2>Tiếc quá!</h2><p class="sub">Phần thưởng cuối cùng vừa có người nhận trước bạn.</p></div>
+       <div class="actions"><button class="btn primary" id="ok">Đóng</button></div>`);$("ok").onclick=closeSheet;return}
+    setMine({name,v:res.v,idx:res.idx});
+    const moved=res.idx!==i?`<p class="sub">Đèn số ${i+1} vừa có người mở trước, bạn nhận đèn số ${res.idx+1}.</p>`:"";
+    openSheet(`<div class="reveal"><p class="sub">Đèn số ${res.idx+1} đã sáng</p>${moved}
+     <div class="big">${fmt(res.v)}</div><p class="msg">Chúc mừng ${esc(name)}!<br>Chúc bạn một mùa trăng đoàn viên.</p></div>
+     <div class="actions"><button class="btn primary" id="ok">Nhận thưởng</button></div>`);
+    $("ok").onclick=closeSheet;confetti();
+  };
+}
+
+/* Giao dịch: đọc toàn bộ đèn + tên người chơi, gán giải một cách nguyên tử */
+function claim(pref,name,key){
+  const pRef=fs.doc(`rounds/${round}/players/${key}`);
+  const refs=Array.from({length:TOTAL},(_,j)=>fs.doc(`rounds/${round}/envs/e${j}`));
+  return fs.runTransaction(async t=>{
+    const p=await t.get(pRef);
+    if(p.exists)return {dup:true,...p.data()};
+    const snaps=[];for(const r of refs)snaps.push(await t.get(r));
+    const taken={};snaps.forEach((s,j)=>{if(s.exists)taken[j]=s.data()});
+    const bag=[];PRIZES.forEach(pz=>{const used=Object.values(taken).filter(x=>x.v===pz.v).length;for(let j=used;j<pz.n;j++)bag.push(pz.v)});
+    if(!bag.length)return {soldOut:true};
+    const v=bag[Math.floor(Math.random()*bag.length)];
+    let idx=pref;if(taken[idx]){const free=[];for(let j=0;j<TOTAL;j++)if(!taken[j])free.push(j);idx=free[Math.floor(Math.random()*free.length)]}
+    const at=Date.now();
+    t.set(refs[idx],{name,v,at,player:key});
+    t.set(pRef,{name,v,idx,at});
+    return {idx,v};
+  });
+}
+
+function showHist(){
+  const rows=Object.entries(envs).map(([i,e])=>({i:+i,...e})).sort((a,b)=>a.at-b.at);
+  const total=rows.reduce((s,r)=>s+r.v,0);
+  openSheet(`<h2>Người trúng</h2><p class="sub">Đã trao ${fmt(total)} / ${fmt(PRIZES.reduce((s,p)=>s+p.v*p.n,0))}</p><ul class="hist" id="hl"></ul>
+   <div class="actions"><button class="btn primary" id="ok">Đóng</button></div>`);
+  $("ok").onclick=closeSheet;
+  if(!rows.length){$("hl").replaceWith(el("p","empty","Chưa có đèn nào được thắp."));return}
+  rows.forEach(r=>{const li=el("li");li.appendChild(el("span",null,`${r.name||"Một người chơi"} · đèn ${r.i+1}`));li.appendChild(el("b",null,fmt(r.v)));$("hl").appendChild(li)});
+}
+
+function watchRound(){
+  if(unsubEnvs)unsubEnvs();envs={};render();
+  unsubEnvs=fs.collection(`rounds/${round}/envs`).onSnapshot(s=>{
+    const n={};s.forEach(d=>{n[+d.id.slice(1)]=d.data()});envs=n;render();
+  },e=>{console.error(e);failed="Không đọc được dữ liệu. Kiểm tra lại Rules trong Firestore.";render()});
+}
+
+function init(){
+  if(!window.firebase||firebaseConfig.apiKey.startsWith("DAN_")){
+    failed=!window.firebase?"Không tải được Firebase. Kiểm tra kết nối mạng.":"Chưa dán cấu hình Firebase vào file.";ready=true;render();return}
+  firebase.initializeApp(firebaseConfig);
+  fs=firebase.firestore();
+  fs.doc("config/game").onSnapshot(s=>{
+    const r=(s.exists&&s.data().round)||"r0";
+    ready=true;
+    if(r!==round){round=r;watchRound()}else render();
+  },e=>{console.error(e);failed="Không kết nối được Firestore. Kiểm tra cấu hình và Rules.";ready=true;render()});
+}
+$("bHist").onclick=showHist;
+
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const c=$("confetti"),x=c.getContext("2d"),d=devicePixelRatio||1;
+  c.width=innerWidth*d;c.height=innerHeight*d;x.setTransform(d,0,0,d,0,0);
+  const cols=["#F4C95D","#E4572E","#FFE9A8","#5B2A86","#FFFFFF"];
+  const ps=Array.from({length:120},()=>({x:innerWidth/2,y:innerHeight*.55,vx:(Math.random()-.5)*12,vy:-Math.random()*14-6,s:Math.random()*7+4,r:Math.random()*6,c:cols[Math.floor(Math.random()*cols.length)]}));
+  let f=0;(function tick(){x.clearRect(0,0,innerWidth,innerHeight);
+    ps.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;x.fillStyle=p.c;x.beginPath();x.arc(p.x,p.y,p.s/2.4,0,7);x.fill()});
+    if(++f<150)requestAnimationFrame(tick);else x.clearRect(0,0,innerWidth,innerHeight)})();
+}
+render();init();
+</script>
+</body>
+</html>
